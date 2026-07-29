@@ -6,7 +6,10 @@ description: >
   priority), writes a lightweight daily audit file, and presents the full master list.
   Triggered by: "todos for today", "give me my todo list", "generate todos", "/daily-todos".
 user-invocable: true
-allowed-tools: Bash, Read, Write, Edit, Glob, mcp__google-calendar__list_events, mcp__slack__search
+allowed-tools: Bash, Read, Write, Edit, Glob
+# SETUP REQUIRED: add your MCP tool names above, e.g.:
+# allowed-tools: Bash, Read, Write, Edit, Glob, mcp__google-calendar__list_events, mcp__slack__slack_search_public_and_private
+# See README step 5 to find your exact tool names.
 ---
 
 # daily-todos
@@ -26,14 +29,29 @@ Present the full master list as the daily picture.
 
 ## Configuration
 
-Set these in your `CLAUDE.md` or at the top of the skill before first use:
+Set these values in `~/.claude/CLAUDE.md` under a `## Personal Assistant Config` heading.
+Claude Code reads that file as context on every session — no edits to this SKILL.md needed.
 
-| Constant | Description | Example |
-|----------|-------------|---------|
-| `SLACK_USER_ID` | Your Slack user ID (Settings → Profile → copy from URL) | `U012AB3CD` |
-| `NOTES_PATH` | Root path for journals + pages | `~/Documents/notes/` |
-| `SLACK_MCP_TOOL` | Your Slack MCP search tool name | `mcp__slack__slack_search_public_and_private` |
-| `CALENDAR_MCP_TOOL` | Your calendar MCP list-events tool name | `mcp__google-calendar__list_events` |
+```markdown
+## Personal Assistant Config
+
+- Slack user ID: `UXXXXXXXXXXX`
+- Notes path: `/Users/yourname/Documents/notes`
+- GitHub username: `your-github-handle`
+- Slack MCP tool: `mcp__slack__slack_search_public_and_private`
+- Calendar MCP tool: `mcp__google-calendar__list_events`
+- Timezone offset: `+00:00`
+```
+
+**Finding your Slack user ID:** Slack → click your name → three-dot menu → Copy member ID.
+
+| Value | Description |
+|-------|-------------|
+| `Slack user ID` | Your personal Slack member ID (e.g. `U012AB3CD`) |
+| `Notes path` | Root folder containing `journals/` and `pages/` subdirs |
+| `Slack MCP tool` | Exact name of your Slack search MCP tool (see README step 4) |
+| `Calendar MCP tool` | Exact name of your calendar list-events MCP tool (see README step 4) |
+| `Timezone offset` | Your UTC offset, e.g. `-07:00` (US Pacific), `+01:00` (CET) |
 
 ---
 
@@ -84,8 +102,8 @@ If it does not exist yet, it will be created in Step 6.
 ## Step 2 — Check today's calendar (parallel with Step 1)
 
 Call your calendar MCP list-events tool:
-- `time_min`: `TARGET_DATE T00:00:00-07:00`
-- `time_max`: `TARGET_DATE T23:59:00-07:00`
+- `time_min`: `TARGET_DATE T00:00:00YOUR_TIMEZONE_OFFSET` (use `Timezone offset` from CLAUDE.md config)
+- `time_max`: `TARGET_DATE T23:59:00YOUR_TIMEZONE_OFFSET`
 - `max_results`: 25
 
 Extract for the **audit file only** (meetings do NOT go in master Todos.md):
@@ -101,7 +119,8 @@ Skip personal blocks (gym, lunch, etc.).
 
 Search for messages sent TO you since `SINCE_DATE`:
 ```
-to:<@YOUR_SLACK_USER_ID> after:SINCE_DATE
+to:<@SLACK_USER_ID> after:SINCE_DATE
+# substitute SLACK_USER_ID from your CLAUDE.md Personal Assistant Config
 channel_types: im,mpim
 limit: 20
 sort: timestamp asc
@@ -118,7 +137,8 @@ Look for new action items:
 
 Search for messages FROM you since `SINCE_DATE`:
 ```
-from:<@YOUR_SLACK_USER_ID> after:SINCE_DATE
+from:<@SLACK_USER_ID> after:SINCE_DATE
+# substitute SLACK_USER_ID from your CLAUDE.md Personal Assistant Config
 channel_types: im,mpim,public_channel,private_channel
 limit: 20
 sort: timestamp asc
